@@ -55,6 +55,7 @@ public class DFSBenchmark {
   static final Histogram responseTimeHistogram = metrics.newHistogram(DFSBenchmark.class, "ResponseTime_Historgram");
   static final Counter fileOpens = Metrics.newCounter(DFSBenchmark.class, "file-opened");
   static final ConsoleReporter reporter = new ConsoleReporter(System.out);
+  static final Meter throughput = Metrics.newMeter(DFSBenchmark.class, "throughput/sec", "", TimeUnit.SECONDS);
 
   private int threads;
   private Path baseDirPath;
@@ -84,9 +85,11 @@ public class DFSBenchmark {
     service.shutdown();
 
     System.out.println("Total number of fileOpens : " + fileOpens.count());
-    System.out.println("Respone time histogram");
-    reporter.processHistogram(new MetricName("","","ResponseTime"), responseTimeHistogram, System.out);
+    System.out.println("Response time histogram");
+    reporter.processHistogram(new MetricName("", "", "ResponseTime"), responseTimeHistogram, System.out);
+    reporter.processMeter(new MetricName("", "", "ThroughPut per second"), throughput, System.out);
     metrics.shutdown();
+
     LOG.info("Done!!..");
   }
 
@@ -123,6 +126,7 @@ public class DFSBenchmark {
           Path filePath = filePaths.next().getPath();
           fs.open(filePath);
           fileOpens.inc();
+          throughput.mark();
         }
         return stopwatch.stop().elapsedTime(TimeUnit.MILLISECONDS);
       } catch (IOException e) {
