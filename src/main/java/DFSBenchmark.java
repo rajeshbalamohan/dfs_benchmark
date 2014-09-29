@@ -18,7 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.zookeeper.server.persistence.SnapShot;
 
@@ -124,7 +124,9 @@ public class DFSBenchmark {
         stopwatch.start();
         while (filePaths.hasNext()) {
           Path filePath = filePaths.next().getPath();
-          fs.open(filePath);
+          FSDataInputStream in = fs.open(filePath);
+          in.read();
+          in.close();
           fileOpens.inc();
           throughput.mark();
         }
